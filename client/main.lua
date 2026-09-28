@@ -42,6 +42,12 @@ for _, key in ipairs({ 'DefaultPosition', 'ForcePosition' }) do
     end
 end
 
+local maxVisible = math.floor(tonumber(Config.MaxVisible) or 0)
+if maxVisible < 1 then
+    print(('^3[oxide-helptext] Config.MaxVisible "%s" must be a whole number of 1 or more; using 4^0'):format(tostring(Config.MaxVisible)))
+    maxVisible = 4
+end
+
 -- Prompts queue until the UI reports ready; say so once if it never does.
 local function checkNuiLoads()
     if nuiCheckStarted then return end
@@ -69,7 +75,7 @@ local function sendKeyState(id, down)
     SendNUIMessage({ action = 'keyState', data = { id = id, down = down } })
 end
 
----Newest Config.MaxVisible prompts per position, oldest first.
+---Newest maxVisible prompts per position, oldest first.
 ---@return table
 local function visiblePrompts()
     local ordered = {}
@@ -80,7 +86,7 @@ local function visiblePrompts()
     for i = #ordered, 1, -1 do
         local position = ordered[i].model.position
         perPosition[position] = (perPosition[position] or 0) + 1
-        if perPosition[position] <= Config.MaxVisible then
+        if perPosition[position] <= maxVisible then
             table.insert(visible, 1, ordered[i])
         end
     end
@@ -185,7 +191,11 @@ local function Show(message, position, owner)
 
     local model = Parser.build(message)
     if not model.title and #model.lines == 0 then
-        return Hide(id, owner)
+        if existing then
+            prompts[slot] = nil
+            sync()
+        end
+        return
     end
     model.position = resolvePosition(type(message) == 'table' and message.position or position)
 
