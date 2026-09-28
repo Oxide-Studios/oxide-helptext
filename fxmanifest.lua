@@ -9,6 +9,7 @@ version '1.0.0'
 
 escrow_ignore {
     'shared/config.lua',
+    'compat/*.lua',     -- loaded by ox_lib, so it must stay plain Lua
 }
 
 ui_page 'web/dist/index.html'
@@ -17,6 +18,7 @@ files {
     'web/dist/index.html',
     'web/dist/assets/*.js',
     'web/dist/assets/*.css',
+    'compat/ox_lib.lua',
 }
 
 shared_scripts {

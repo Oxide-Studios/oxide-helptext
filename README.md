@@ -15,15 +15,33 @@ provider for o-link.
 
 ## Installation
 
-Start it **before** o-link, so o-link picks it as the helptext provider:
+Start it **before** ox_lib and o-link. o-link then picks it as the helptext provider, and the
+ox_lib compatibility file below is available when ox_lib starts:
 
 ```cfg
-ensure ox_lib
 ensure oxide-helptext
+ensure ox_lib
 ensure o-link
 ```
 
-It has no dependencies of its own.
+It has no dependencies of its own. If other resources pull ox_lib in early (a map or MLO that
+depends on it), put `ensure oxide-helptext` above those too.
+
+### Scripts that call ox_lib directly
+
+Most scripts show prompts with `lib.showTextUI` instead of o-link. To send those through
+oxide-helptext as well, add this line to the end of **ox_lib's** `fxmanifest.lua`:
+
+```lua
+client_script '@oxide-helptext/compat/ox_lib.lua'
+```
+
+Every `lib.showTextUI` / `lib.hideTextUI` call on the server then shows an oxide-helptext
+prompt, owned by the script that called it. `lib.hideTextUI` only hides that script's ox_lib
+prompt, never its other prompts. Nothing else in ox_lib changes, and if
+oxide-helptext is stopped, ox_lib's own text UI takes over again.
+
+Updating ox_lib replaces its `fxmanifest.lua`, so add the line again after each update.
 
 ## Usage
 

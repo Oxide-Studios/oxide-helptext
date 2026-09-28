@@ -15,25 +15,28 @@ const segmentsOf = (line) => (Array.isArray(line) ? line : [])
 
 <template>
   <div class="card">
-    <div v-if="prompt.title || prompt.icon" class="header">
-      <i v-if="prompt.icon" :class="prompt.icon" class="icon"></i>
-      <span v-if="prompt.title" class="title">{{ prompt.title }}</span>
+    <div v-if="prompt.icon" class="icon">
+      <i :class="prompt.icon"></i>
     </div>
 
-    <div v-for="(line, i) in lines" :key="i" class="line">
-      <template v-for="(segment, j) in segmentsOf(line)" :key="j">
-        <KeyCap
-          v-if="segment.t === 'key'"
-          :label="segment.v"
-          :pressed="!!(segment.k && pressed[segment.k])"
-        />
-        <span v-else-if="segment.t === 'sep'" class="sep"></span>
-        <span
-          v-else
-          class="text"
-          :class="[segment.b && 'bold', segment.c && `color-${segment.c}`]"
-        >{{ segment.v }}</span>
-      </template>
+    <div class="body">
+      <div v-if="prompt.title" class="title">{{ prompt.title }}</div>
+
+      <div v-for="(line, i) in lines" :key="i" class="line">
+        <template v-for="(segment, j) in segmentsOf(line)" :key="j">
+          <KeyCap
+            v-if="segment.t === 'key'"
+            :label="segment.v"
+            :pressed="!!(segment.k && pressed[segment.k])"
+          />
+          <span v-else-if="segment.t === 'sep'" class="sep"></span>
+          <span
+            v-else
+            class="text"
+            :class="[segment.b && 'bold', segment.c && `color-${segment.c}`]"
+          >{{ segment.v }}</span>
+        </template>
+      </div>
     </div>
   </div>
 </template>
@@ -44,8 +47,8 @@ const segmentsOf = (line) => (Array.isArray(line) ? line : [])
   max-width: 360px;
   padding: 10px 14px;
   display: flex;
-  flex-direction: column;
-  gap: 7px;
+  align-items: center;
+  gap: 11px;
   background: linear-gradient(135deg, rgba(15, 17, 19, 0.92) 0%, rgba(15, 17, 19, 0.84) 100%);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
@@ -61,20 +64,30 @@ const segmentsOf = (line) => (Array.isArray(line) ? line : [])
   z-index: -1;
 }
 
-.header {
+.icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  justify-content: center;
+  border-radius: 7px;
+  background: rgba(155, 44, 44, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: #c24141;
+  font-size: 14px;
 }
 
-.icon {
-  font-size: 11px;
-  color: #c24141;
+.body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 }
 
 .title {
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.08em;
