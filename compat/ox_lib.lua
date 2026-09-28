@@ -42,6 +42,17 @@ local function running()
     return GetResourceState(HELPTEXT) == 'started'
 end
 
+-- A failed hand-off falls back to ox_lib's UI; report each distinct error once so a real bug
+-- isn't hidden behind the fallback.
+local reported = {}
+
+local function reportFallback(err, owner)
+    err = tostring(err)
+    if reported[err] then return end
+    reported[err] = true
+    print(('^3[oxide-helptext] a %s prompt fell back to ox_lib\'s text UI: %s^0'):format(owner, err))
+end
+
 ---@param prompt table
 local function forward(prompt)
     local data = prompt.data
@@ -55,7 +66,11 @@ SendNUIMessage = function(message)
 
     if action == 'textUi' then
         current = { data = message.data or {}, owner = GetInvokingResource() or 'ox_lib' }
-        if running() and pcall(forward, current) then return end
+        if running() then
+            local ok, err = pcall(forward, current)
+            if ok then return end
+            reportFallback(err, current.owner)
+        end
     elseif action == 'textUiHide' then
         current = nil
         if running() then pcall(function() exports[HELPTEXT]:Hide(PROMPT_ID, GetInvokingResource() or 'ox_lib') end) end

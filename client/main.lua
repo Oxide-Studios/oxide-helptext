@@ -14,6 +14,7 @@ local ALIASES = { left = 'left-center', right = 'right-center', top = 'top-cente
 local prompts = {}   -- [slot] = { slot, owner, id, model, raw, rawPosition, sig, order }
 local counter = 0
 local nuiReady = false
+local nuiCheckStarted = false
 local watching = false
 local pausedHidden = false
 
@@ -32,6 +33,23 @@ local function resolvePosition(position)
         or normalizePosition(position)
         or normalizePosition(Config.DefaultPosition)
         or 'right-center'
+end
+
+for _, key in ipairs({ 'DefaultPosition', 'ForcePosition' }) do
+    local value = Config[key]
+    if value and not normalizePosition(value) then
+        print(('^3[oxide-helptext] Config.%s "%s" is not a valid position and is ignored^0'):format(key, tostring(value)))
+    end
+end
+
+-- Prompts queue until the UI reports ready; say so once if it never does.
+local function checkNuiLoads()
+    if nuiCheckStarted then return end
+    nuiCheckStarted = true
+    SetTimeout(10000, function()
+        if nuiReady then return end
+        print('^3[oxide-helptext] The UI never loaded, so prompts cannot be drawn. Build web/ (npm run build) or install the release zip.^0')
+    end)
 end
 
 ---@param owner string|nil
@@ -90,7 +108,11 @@ local function sync()
     end
 
     Keys.setVisible(keyIds, sendKeyState)
-    if nuiReady then SendNUIMessage({ action = 'setPrompts', data = payload }) end
+    if nuiReady then
+        SendNUIMessage({ action = 'setPrompts', data = payload })
+    elseif #payload > 0 then
+        checkNuiLoads()
+    end
     if #payload > 0 then startWatcher() end
 end
 
